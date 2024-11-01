@@ -28,7 +28,7 @@ jobs:
           oc login $OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN --insecure-skip-tls-verify
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.IMAGE_REGISTRY }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }} .
+        run: docker build -t moster-app:latest -f Dockerfile .
 
       - name: Log in to OpenShift Docker registry
         env:
