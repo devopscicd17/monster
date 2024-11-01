@@ -8,13 +8,12 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production  # Specifies the 'production' environment to use secrets
 
     steps:
-      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Log in to OpenShift using the oc CLI
       - name: Install OpenShift CLI
         run: |
           curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
@@ -28,23 +27,18 @@ jobs:
         run: |
           oc login $OPENSHIFT_SERVER --token=$OPENSHIFT_TOKEN --insecure-skip-tls-verify
 
-      # Step 3: Build the Docker image
       - name: Build Docker image
         run: docker build -t ${{ secrets.IMAGE_REGISTRY }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }} .
 
-      # Step 4: Log in to OpenShift Docker registry
       - name: Log in to OpenShift Docker registry
         env:
-          OPENSHIFT_SERVER: ${{ secrets.OPENSHIFT_SERVER }}
           OPENSHIFT_TOKEN: ${{ secrets.OPENSHIFT_TOKEN }}
         run: |
           echo $OPENSHIFT_TOKEN | docker login -u user --password-stdin ${{ secrets.IMAGE_REGISTRY }}
 
-      # Step 5: Push the image to OpenShift registry
       - name: Push Docker image to registry
         run: docker push ${{ secrets.IMAGE_REGISTRY }}/${{ secrets.IMAGE_NAME }}:${{ github.sha }}
 
-      # Step 6: Deploy the image in OpenShift
       - name: Deploy to OpenShift
         env:
           IMAGE_REGISTRY: ${{ secrets.IMAGE_REGISTRY }}
